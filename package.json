@@ -1,0 +1,53 @@
+{
+  "name": "vfnode",
+  "version": "1.0.0",
+  "description": "High-performance VRF Node for cryptographically secure coinflip service",
+  "main": "target/release/vfnode",
+  "scripts": {
+    "setup": "npm run setup:rust && npm run setup:db && npm run build",
+    "setup:rust": "rustup update && cargo --version",
+    "setup:db": "npm run db:create && npm run db:migrate",
+    "setup:node": "npm install",
+    "db:create": "touch vfnode.db",
+    "db:migrate": "sqlite3 vfnode.db < schema.sql",
+    "db:reset": "rm -f vfnode.db && npm run setup:db",
+    "db:check": "sqlite3 vfnode.db '.tables'",
+    "build": "cargo build --release",
+    "build:dev": "cargo build",
+    "start": "cargo run --release",
+    "start:dev": "cargo run",
+    "start:background": "nohup ./target/release/vfnode > server.log 2>&1 & echo 'Server started'",
+    "stop": "pkill -f vfnode || true",
+    "restart": "npm run stop && sleep 2 && npm run start:background",
+    "status": "ps aux | grep vfnode | grep -v grep || echo 'VF Node not running'",
+    "logs": "tail -f server.log",
+    "test": "npm run test:health && npm run test:performance",
+    "test:health": "curl -s http://localhost:3001/health | jq || echo 'Server not responding'",
+    "test:coinflip": "curl -X POST http://localhost:3001/coinflip -H 'Content-Type: application/json' -d '{\"user_seed\": \"test\", \"timestamp\": 1698765432}' | jq",
+    "test:performance": "npx tsx test_bets.ts",
+    "test:simple": "npx tsx test_client.ts",
+    "clean": "cargo clean && rm -f server.log vfnode.db",
+    "dev": "npm run setup && npm run start:background && echo 'VF Node ready at http://localhost:3001'"
+  },
+  "keywords": [
+    "vrf",
+    "cryptography",
+    "rust",
+    "blockchain",
+    "randomness",
+    "coinflip"
+  ],
+  "author": "VF Node Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
